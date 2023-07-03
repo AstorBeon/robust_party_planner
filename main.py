@@ -33,7 +33,7 @@ random_activities=["Washing my car","Doing pushups","Drinking liquids on first s
 
 #st.set_page_config(layout="wide")
 st.title(f"{NAME}'s {PARTYTYPE} party - Cost breakdown")
-limit= st.text_input('Amount to be spent', '600')
+limit= st.text_input('Amount to be spent (initial assumption)', '600')
 st.subheader('Transportation')
 
 
@@ -214,7 +214,7 @@ def generate_knowledge_summary():
         cost_of_transport_deviation_calculation
         transport_min =transport_total - cost_of_transport_deviation_calculation
         transport_max = transport_total + cost_of_transport_deviation_calculation
-        knowledge_summary += f"{round(transport_min,2)} <-> {round(transport_max,2)}<br>"
+        knowledge_summary += f" {round(transport_min,2)} <-> {round(transport_max,2)}<br>"
 
 
     except Exception:
@@ -239,7 +239,7 @@ def generate_knowledge_summary():
 
     knowledge_summary+=f"Activities -> {activities_cost}:<br>"
     for activity in st.session_state['activities']:
-        knowledge_summary += f"----{activity[0]} -> {activity[1]}<br>"
+        knowledge_summary += f">>>{activity[0]} -> {activity[1]}<br>"
 
     #knowledge_summary+=f"Total for activities is: {activities_cost}"
     return knowledge_summary
@@ -255,7 +255,7 @@ def show_summary():
 #st.button(f"Generate sumary!",on_click=show_summary)
 show_summary()
 true_total_cost = transport_total + int(cost_of_accomodation) + total_cost_foods_drinks+activities_cost
-addition_for_bach = st.text_input("Percentage added for bachelor (cos he doesn't pay for himself)","10")
+addition_for_bach = st.number_input(f"Percentage added for bachelor (cos  {NAME} doesn't pay)",10)
 true_total_cost *= 1+float(addition_for_bach)/100
 
 min_costs=foods_min + accom_min + transport_min + int(activities_cost)
@@ -278,9 +278,20 @@ else:
 if (min_costs+max_costs)/2>int(limit):
     st.error(f"Including all deviations, total cost WILL be higher than planned - from {round(min_costs-int(limit),2)} up to {round(max_costs-int(limit),2)} over the limit")
 elif max_costs>int(limit):
-    st.error(
+    st.warning(
         f"Including all deviations, total cost might be higher than planned - up to {round(max_costs - int(limit),2)} over the limit")
+else:
+    st.success("It seems like all costs are going to be within initial assumption!")
 
+
+#st.markdown("<br>",unsafe_allow_html=True)
+
+def export_data():
+    st.balloons()
+
+
+
+st.button("Export (not yet implemented)",on_click=export_data)
 
 
 
@@ -296,7 +307,7 @@ st.markdown("""
 
 
 st.markdown(
-     f'<p class="footerstyle"><br>Made by: Astor Beon - v. 1.0</p>',
+     f'<p class="footerstyle"><br>Made by: Astor Beon - v. 1.2</p>',
      unsafe_allow_html=True)
 
 
