@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/RobustBachelorCalculator.iml" filepath="$PROJECT_DIR$/.idea/RobustBachelorCalculator.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/robust_party_planner.iml" filepath="$PROJECT_DIR$/.idea/robust_party_planner.iml" />
     </modules>
   </component>
 </project>

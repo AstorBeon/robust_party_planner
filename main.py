@@ -306,6 +306,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
+
 st.markdown(
      f'<p class="footerstyle"><br>Made by: Astor Beon - v. 1.2</p>',
      unsafe_allow_html=True)
