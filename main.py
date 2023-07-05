@@ -33,7 +33,7 @@ random_activities=["Washing my car","Doing pushups","Drinking liquids on first s
 
 #st.set_page_config(layout="wide")
 st.title(f"{NAME}'s {PARTYTYPE} party - Cost breakdown")
-limit= st.text_input('Amount to be spent (initial assumption)', '600')
+limit= st.number_input('Amount to be spent (initial assumption)', 600)
 st.subheader('Transportation')
 
 
@@ -67,6 +67,7 @@ else:
         with trans_col2:
             cost_of_transport_highway_fee = st.number_input('Cost of highway fees:', 20)
             cost_of_transport_on_site = st.number_input('Cost of transportation on site', 20)
+
         transport_total = float(cost_of_transport_highway_fee) + \
                           float(cost_of_transport_length) / 100 * float(cost_of_transport_cost_of_litre) *\
                           float(cost_of_transport_litres_per_100km) + float(cost_of_transport_on_site)
@@ -82,7 +83,7 @@ else:
         """, unsafe_allow_html=True)
 
         st.markdown(f'<p class="big-font">Including {cost_of_transport_deviation}% deviation, total cost of transport is: ---> {transport_total + transport_total/float(cost_of_transport_deviation)}</p>', unsafe_allow_html=True)
-
+notes_transportation = st.text_input("Notes for transportation: ","None")
 st.subheader('Accomodation')
 acom_col1, acom_col2 = st.columns(2)
 with acom_col1:
@@ -112,7 +113,7 @@ else:
         f'<p class="big-font">Including {cost_of_accomodation_deviation}% deviation, total cost of transport is between : ---> {int(cost_of_accomodation)-accomodation_total_deviation_calculation} and {int(cost_of_accomodation)+accomodation_total_deviation_calculation}</p>',
         unsafe_allow_html=True)
 
-
+notes_accomodation = st.text_input("Notes for accomodation: ","None")
 st.subheader('Food & Drinks')
 food_col1, food_col2 = st.columns(2)
 with food_col1:
@@ -120,7 +121,7 @@ with food_col1:
 with food_col2:
     cost_of_drinks = st.number_input('Cost of drinks (alc)', 160)
 total_cost_foods_drinks = int(cost_of_food) + int(cost_of_drinks)
-cost_of_food_deviation = st.text_input('Deviation:', '0')
+cost_of_food_deviation = st.number_input('Deviation:', 0)
 
 try:
     foods_total_deviation_calculation =int(total_cost_foods_drinks) / float(cost_of_food_deviation)
@@ -138,7 +139,7 @@ else:
         f'<p class="big-font">Including {cost_of_food_deviation}% deviation, total cost of foods and drinks is between : ---> {int(total_cost_foods_drinks)-foods_total_deviation_calculation} and {int(total_cost_foods_drinks)+foods_total_deviation_calculation}</p>',
         unsafe_allow_html=True)
 
-
+notes_transportation = st.text_input("Notes for foods & drinks: ","None")
 
 st.subheader("Activities")
 
@@ -169,7 +170,7 @@ for key,val in st.session_state['activities']:
         st.text("   ")
         st.button(f"""DELETE -\n {key}""",on_click=delete_from_activities,args=(count,))
     count+=1
-
+notes_activities = st.text_input("Notes for activities","")
 
 def add_activity_panel():
     st.session_state['is_new_activity_open']=True
@@ -191,6 +192,7 @@ if (st.session_state['is_new_activity_open']):
     st.button("Approve new activity",on_click=add_activity)
 st.button("Add new activity",on_click=add_activity_panel)
 
+notes_transportation = st.text_input("Notes for activities: ","None")
 initial=False
 
 activities_cost = sum([int(x[1]) for x in st.session_state['activities']])
@@ -211,7 +213,7 @@ def generate_knowledge_summary():
     knowledge_summary =  f"Way of transportation: {option} ->"
 
     try:
-        cost_of_transport_deviation_calculation
+        #cost_of_transport_deviation_calculation
         transport_min =transport_total - cost_of_transport_deviation_calculation
         transport_max = transport_total + cost_of_transport_deviation_calculation
         knowledge_summary += f" {round(transport_min,2)} <-> {round(transport_max,2)}<br>"
@@ -286,14 +288,113 @@ else:
 
 #st.markdown("<br>",unsafe_allow_html=True)
 
+notes_general = st.text_input("General notes for whole party: ","None")
+
+
+def create_download_link(val, filename):
+    b64 = base64.b64encode(val)  # val looks like b'...'
+    return f'<a href="data:application/octet-stream;base64,{b64.decode()}" download="{filename}.pdf">Click here to download summary (experimental)</a>'
+
+
 def export_data():
     st.balloons()
 
+    pdf = FPDF('P', 'mm', 'A4')
+    pdf.add_page()
+    pdf.set_font('Arial', 'B', 25)
+    pdf.cell(190, 10, f'{NAME}\'s party cost breakdown.', 0, 1, 'C')
+    pdf.set_font('Arial', 'B', 15)
+    pdf.ln(5)
+    pdf.cell(40, 10, f'Transport: {option}', 0, 1)
+    pdf.set_font('Arial', '', 12)
+
+    if "No travel" not in option:
+        if option == "Train":
+            pdf.cell(70, 10, f'Cost of ticket (two ways): {cost_of_transport}', 0, 1)
+            pdf.cell(70, 10, f'Cost of transport on site: {cost_of_transport_on_site}', 0, 1)
+        else:
+            if not adv:
+                pdf.cell(70, 10, f'Cost of fuel (two ways): {cost_of_transport_fuel}', 0, 1)
+                pdf.cell(70, 10, f'Cost of transport on site: {cost_of_transport_on_site}', 0, 1)
+            else:
+                pdf.cell(70, 10, f'Liters per 100km: {cost_of_transport_litres_per_100km}', 0, 1)
+                pdf.cell(70, 10, f'Cost of single liter: {cost_of_transport_cost_of_litre}', 0, 1)
+                pdf.cell(70, 10, f'Distance to drive: {cost_of_transport_length}', 0, 1)
+                pdf.cell(70, 10, f'Highway fees: {cost_of_transport_highway_fee}', 0, 1)
+                pdf.cell(70, 10, f'Cost of transport on site: {cost_of_transport_on_site}', 0, 1)
 
 
-st.button("Export (not yet implemented)",on_click=export_data)
+        pdf.cell(70, 10, f'Total travel cost: {transport_total}', 0, 1)
+        pdf.cell(70, 10, f"Notes: {notes_transportation}",0,1)
+        pdf.ln(5)
+
+        #Accomodation
+        pdf.set_font('Arial', 'B', 15)
+        #todo continue here - finish the report
+        pdf.cell(40, 10, f'Accomodation:', 0, 1)
+        pdf.set_font('Arial', '', 12)
+        pdf.cell(70, 10, f'Total cost of accomodation: {cost_of_accomodation*(100-cost_of_accomodation_deviation)}-{cost_of_accomodation*(100+cost_of_accomodation_deviation)}', 0, 1)
+        pdf.cell(70, 10, f'Accomodation cost deviation: {cost_of_accomodation_deviation}%', 0, 1)
+        pdf.cell(40, 10, f'Notes: {notes_accomodation}', 0, 1)
+        pdf.ln(5)
+        pdf.set_font('Arial', 'B', 15)
+        pdf.cell(40, 10, f'Foods & drinks:', 0, 1, 'C')
+        pdf.set_font('Arial', '', 12)
+        pdf.cell(70, 10, f"Cost of food: {cost_of_food}", 0, 1)
+        pdf.cell(70, 10, f"Cost of food: {cost_of_drinks}", 0, 1)
+        pdf.cell(70, 10, f"Total cost of f&d: {(cost_of_drinks+cost_of_food)*(100-cost_of_food_deviation)} - {(cost_of_drinks+cost_of_food)*(100-cost_of_food_deviation)}", 0, 1)
+        pdf.cell(70, 10, f"Deviation of cost of food and drinks: {cost_of_food_deviation}", 0, 1)
+
+        pdf.ln(5)
+        pdf.set_font('Arial', 'B', 15)
+        pdf.cell(40, 10, f'Activities:', 0, 1)
+        pdf.set_font('Arial', '', 12)
+        #for act, actobj in zip(st.session_state["activities"],st.session_state["activities_objs"]):
+        for act in st.session_state["activities"]:
+            pdf.cell(70, 10, f"{act[0]}: {act[1]}", 0, 1)
+
+        pdf.cell(70, 10, f"Notes: {notes_activities}", 0, 1)
+        pdf.ln(10)
+        pdf.set_font('Arial', 'B', 15)
+        pdf.cell(40, 10, f'Total cost (including deviations and general additional cost',0,1)
+        pdf.cell(40,10,'of the main person - {addition_for_bach}) is:'
+                         f'{min_costs} - {max_costs}', 0, 1)
+        pdf.set_font('Arial', '', 12)
+        pdf.cell(70, 10, f"General notes: {notes_general}", 0, 1)
+    html = create_download_link(pdf.output(dest="S").encode("latin-1"), "test")
+    return html
+    #st.markdown({html}, unsafe_allow_html=True)
+    #st.button("Experimental", on_click=lambda x: html.cl)
 
 
+
+#st.button("Generate summary (experimental)",on_click=export_data)
+
+###TESTING###
+from fpdf import FPDF
+import base64
+from tempfile import NamedTemporaryFile
+
+from streamlit.components.v1 import html
+def open_page(url):
+    open_script= """
+        <script type="text/javascript">
+            window.open('%s', '_blank').focus();
+        </script>
+    """ % (url)
+    html(open_script)
+
+#st.button("Generate summary (experimental)",on_click=open_page(export_data()))
+generate_summary_btn = st.button("Generate summary PDF(experimental)",on_click=export_data)
+if generate_summary_btn:
+
+    st.markdown(export_data(), unsafe_allow_html=True)
+    st.markdown(f"<script>"
+                f'var x = {export_data()};'
+                f'x.click()'
+                f"</script>",unsafe_allow_html=True)
+
+#st.download_button(label="download", data = "")
 
 
 st.markdown("""
@@ -308,7 +409,7 @@ st.markdown("""
 
 
 st.markdown(
-     f'<p class="footerstyle"><br>Made by: Astor Beon - v. 1.2</p>',
+     f'<p class="footerstyle"><br>Made by: Astor Beon - v. 1.3</p>',
      unsafe_allow_html=True)
 
 
