@@ -170,7 +170,7 @@ for key,val in st.session_state['activities']:
         st.text("   ")
         st.button(f"""DELETE -\n {key}""",on_click=delete_from_activities,args=(count,))
     count+=1
-notes_activities = st.text_input("Notes for activities","")
+notes_activities = st.text_input("Notes for activities","None")
 
 def add_activity_panel():
     st.session_state['is_new_activity_open']=True
@@ -333,7 +333,7 @@ def export_data():
         #todo continue here - finish the report
         pdf.cell(40, 10, f'Accomodation:', 0, 1)
         pdf.set_font('Arial', '', 12)
-        pdf.cell(70, 10, f'Total cost of accomodation: {cost_of_accomodation*(100-cost_of_accomodation_deviation)}-{cost_of_accomodation*(100+cost_of_accomodation_deviation)}', 0, 1)
+        pdf.cell(70, 10, f'Total cost of accomodation: {cost_of_accomodation*(1-cost_of_accomodation_deviation)}-{cost_of_accomodation*(1+cost_of_accomodation_deviation)}', 0, 1)
         pdf.cell(70, 10, f'Accomodation cost deviation: {cost_of_accomodation_deviation}%', 0, 1)
         pdf.cell(40, 10, f'Notes: {notes_accomodation}', 0, 1)
         pdf.ln(5)
@@ -342,8 +342,8 @@ def export_data():
         pdf.set_font('Arial', '', 12)
         pdf.cell(70, 10, f"Cost of food: {cost_of_food}", 0, 1)
         pdf.cell(70, 10, f"Cost of food: {cost_of_drinks}", 0, 1)
-        pdf.cell(70, 10, f"Total cost of f&d: {(cost_of_drinks+cost_of_food)*(100-cost_of_food_deviation)} - {(cost_of_drinks+cost_of_food)*(100-cost_of_food_deviation)}", 0, 1)
-        pdf.cell(70, 10, f"Deviation of cost of food and drinks: {cost_of_food_deviation}", 0, 1)
+        pdf.cell(70, 10, f"Total cost of f&d: {(cost_of_drinks+cost_of_food)*(1-cost_of_food_deviation)} - {(cost_of_drinks+cost_of_food)*(1-cost_of_food_deviation)}", 0, 1)
+        pdf.cell(70, 10, f"Deviation of cost of food and drinks: {cost_of_food_deviation}%", 0, 1)
 
         pdf.ln(5)
         pdf.set_font('Arial', 'B', 15)
@@ -357,8 +357,8 @@ def export_data():
         pdf.ln(10)
         pdf.set_font('Arial', 'B', 15)
         pdf.cell(40, 10, f'Total cost (including deviations and general additional cost',0,1)
-        pdf.cell(40,10,'of the main person - {addition_for_bach}) is:'
-                         f'{min_costs} - {max_costs}', 0, 1)
+        pdf.cell(40,10,f'of the main person - {addition_for_bach}) is:'
+                         f'{round(min_costs,2)} - {round(max_costs,2)}', 0, 1)
         pdf.set_font('Arial', '', 12)
         pdf.cell(70, 10, f"General notes: {notes_general}", 0, 1)
     html = create_download_link(pdf.output(dest="S").encode("latin-1"), "test")
