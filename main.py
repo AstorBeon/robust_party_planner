@@ -17,7 +17,7 @@ foods_max=-1
 NAME = "Maja"
 PARTYTYPE = "Bachelor"
 
-st.set_page_config(page_title=f"{NAME}'s {PARTYTYPE} Party - cost breakdown calculator",layout="wide")#, page_icon = st.image(image))
+st.set_page_config(page_title=f"Party planner - cost breakdown calculator",layout="wide")#, page_icon = st.image(image))
 
 
 if 'activities' not in st.session_state:
@@ -30,7 +30,8 @@ if "is_new_activity_open" not in st.session_state:
 random_activities=["Washing my car","Doing pushups","Drinking liquids on first sight","Trying to lick own elbow",
                    "Petting dogs","Speedrunning blood donations","Watching cartoons","Digging tunnel to China","Cracking"
                                                                                                                "joints"]
-
+NAME = st.text_input("Name of Person of the hour:" , random.choice(["Mac","Kinga","Kitten"]))
+PARTYTYPE = st.text_input("Type of party (ex. Bachelors):" , random.choice(["Bachelors","Vacation","Citybreak"]))
 #st.set_page_config(layout="wide")
 st.title(f"{NAME}'s {PARTYTYPE} party - Cost breakdown")
 limit= st.number_input('Amount to be spent (initial assumption)', 600)
@@ -342,7 +343,10 @@ def export_data():
         pdf.set_font('Arial', '', 12)
         pdf.cell(70, 10, f"Cost of food: {cost_of_food}", 0, 1)
         pdf.cell(70, 10, f"Cost of food: {cost_of_drinks}", 0, 1)
-        pdf.cell(70, 10, f"Total cost of f&d: {(cost_of_drinks+cost_of_food)*(1-cost_of_food_deviation)} - {(cost_of_drinks+cost_of_food)*(1-cost_of_food_deviation)}", 0, 1)
+        if cost_of_food_deviation==0:
+            pdf.cell(70, 10, f"Total cost of f&d: {(cost_of_drinks+cost_of_food)*(1-cost_of_food_deviation)} - {(cost_of_drinks+cost_of_food)*(1-cost_of_food_deviation)}", 0, 1)
+        else:
+            pdf.cell(70, 10, f"Total cost of f&d: {(cost_of_drinks+cost_of_food)}", 0, 1)
         pdf.cell(70, 10, f"Deviation of cost of food and drinks: {cost_of_food_deviation}%", 0, 1)
 
         pdf.ln(5)
@@ -357,7 +361,7 @@ def export_data():
         pdf.ln(10)
         pdf.set_font('Arial', 'B', 15)
         pdf.cell(40, 10, f'Total cost (including deviations and general additional cost',0,1)
-        pdf.cell(40,10,f'of the main person - {addition_for_bach}) is:'
+        pdf.cell(40,10,f'of the main person - {addition_for_bach}%) is:'
                          f'{round(min_costs,2)} - {round(max_costs,2)}', 0, 1)
         pdf.set_font('Arial', '', 12)
         pdf.cell(70, 10, f"General notes: {notes_general}", 0, 1)
@@ -409,7 +413,7 @@ st.markdown("""
 
 
 st.markdown(
-     f'<p class="footerstyle"><br>Made by: Astor Beon - v. 1.3</p>',
+     f'<p class="footerstyle"><br>Made by: Astor Beon - v. 1.3.1 - maciej.konstanty.lachowicz@gmail.com</p>',
      unsafe_allow_html=True)
 
 
