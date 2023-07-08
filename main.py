@@ -12,13 +12,13 @@ import base64
 from tempfile import NamedTemporaryFile
 #image = Image.open('dominik_cut.png')
 
-
-transport_min=-1
-transport_max=1
-accom_min=-1
-accom_max=-1
-foods_min = -1
-foods_max=-1
+VERSION = "1.4"
+transport_min=0
+transport_max=0
+accom_min=0
+accom_max=0
+foods_min =0
+foods_max=0
 NAME = "Maja"
 PARTYTYPE = "Bachelor"
 
@@ -34,6 +34,11 @@ if file_upload is not None:
     string_data = stringio.read()
 
     upload_json = json.loads(string_data)
+
+    #additional check for version
+    if VERSION != upload_json["VERSION"]:
+        st.warning(f"File you're loading was generated using version {upload_json['VERSION']} while current version is {VERSION}."
+                   f"This can cause errors while loading data")
 
     st.session_state["NAME"] = upload_json["General"][0]
     st.session_state["PARTYTYPE"] = upload_json["General"][1]
@@ -299,7 +304,7 @@ def delete_from_activities(index):
 
 
 for rec in st.session_state['activities']["list"]:
-    print(f">>>{rec}<<<")
+
     col_1, col_2, = st.columns(2)
     with col_1:
         x = st.number_input(rec[0],rec[1])
@@ -328,7 +333,7 @@ if (st.session_state['is_new_activity_open']):
         if act_name:
             st.write(act_name)
         st.session_state['activities']["list"].append((act_name,0))
-        print("ADDED")
+
         st.session_state['activities_objs'].append(act_name)
         st.session_state['is_new_activity_open'] = False
 
@@ -529,7 +534,8 @@ def export_json_data():
                 "Transport":{
                     "transport_type":option,
 
-                }
+                },
+                "Version":"1.4"
                 }
 
 
