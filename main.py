@@ -12,15 +12,16 @@ import base64
 from tempfile import NamedTemporaryFile
 #image = Image.open('dominik_cut.png')
 
-VERSION = "1.4"
+VERSION = "1.5"
 transport_min=0
 transport_max=0
 accom_min=0
 accom_max=0
 foods_min =0
 foods_max=0
-NAME = "Maja"
 PARTYTYPE = "Bachelor"
+
+
 
 st.set_page_config(page_title=f"Party planner - cost breakdown calculator",layout="wide")#, page_icon = st.image(image))
 
@@ -87,7 +88,7 @@ if file_upload is not None:
     st.session_state["activities"]["list"] = upload_json["Activities"]["list"]
     st.session_state["activities"]["Notes"] = upload_json["Activities"]["Notes"]
     st.session_state["Other"]["general_notes"] = upload_json["Other"]["general_notes"]
-    pass #todo
+    pass
 
 
 if "is_new_activity_open" not in st.session_state:
@@ -97,14 +98,15 @@ random_activities=["Washing my car","Doing pushups","Drinking liquids on first s
                    "Petting dogs","Speedrunning blood donations","Watching cartoons","Digging tunnel to China","Cracking joints"]
 
 if "NAME" not in st.session_state:
-    st.session_state["NAME"] = "Maja"
-
+    st.session_state["NAME"] = "Dominik"
+    print("here")
+print("there")
 if "PARTYTYPE" not in st.session_state:
     st.session_state["PARTYTYPE"] = "Bachelors"
 
 
 #st.set_page_config(layout="wide")
-st.title(f"{NAME}'s {PARTYTYPE} party - Cost breakdown")
+st.title(f"{st.session_state['NAME']}'s {PARTYTYPE} party - Cost breakdown")
 
 gen_col1, gen_col2 = st.columns(2)
 with gen_col1:
