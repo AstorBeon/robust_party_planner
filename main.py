@@ -99,13 +99,10 @@ random_activities=["Washing my car","Doing pushups","Drinking liquids on first s
 
 if "NAME" not in st.session_state:
     st.session_state["NAME"] = "Dominik"
-    print("here")
-print("there")
+
 if "PARTYTYPE" not in st.session_state:
     st.session_state["PARTYTYPE"] = "Bachelors"
 
-
-#st.set_page_config(layout="wide")
 st.title(f"{st.session_state['NAME']}'s {PARTYTYPE} party - Cost breakdown")
 
 gen_col1, gen_col2 = st.columns(2)
