@@ -14,7 +14,7 @@ accom_min=-1
 accom_max=-1
 foods_min = -1
 foods_max=-1
-NAME = "Maja"
+NAME = "Alex"
 PARTYTYPE = "Bachelor"
 
 st.set_page_config(page_title=f"{NAME}'s {PARTYTYPE} Party - cost breakdown calculator",layout="wide")#, page_icon = st.image(image))
@@ -155,7 +155,8 @@ def delete_from_activities(index):
 
 
 
-
+if 'activities' not in st.session_state.keys():
+    st.session_state['activites'] = {}
 for key,val in st.session_state['activities']:
     col_1, col_2 = st.columns(2)
     with col_1:
