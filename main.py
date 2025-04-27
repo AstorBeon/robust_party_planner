@@ -227,7 +227,7 @@ else:
 
         st.markdown(f'<p class="big-font">Including {cost_of_transport_deviation}% deviation, total cost of transport is: ---> {transport_total + transport_total/float(cost_of_transport_deviation)}</p>', unsafe_allow_html=True)
 notes_transportation = st.text_input("Notes for transportation: ","None")
-st.subheader('accommodation')
+st.subheader('Accommodation')
 acom_col1, acom_col2 = st.columns(2)
 with acom_col1:
     cost_of_accommodation = st.number_input('Cost of accommodation(total):', st.session_state["Accommodation"]["accommodation_cost"])
@@ -249,11 +249,11 @@ except Exception:
     accom_min,accom_max=int(cost_of_accommodation),int(cost_of_accommodation)
 if accommodation_total_deviation_calculation==0:
     st.markdown(
-        f'<p class="big-font">Total cost of transport is: ---> {cost_of_accommodation}</p>',
+        f'<p class="big-font">Total cost of accommodation is: ---> {cost_of_accommodation}</p>',
         unsafe_allow_html=True)
 else:
     st.markdown(
-        f'<p class="big-font">Including {cost_of_accommodation_deviation}% deviation, total cost of transport is between : ---> {int(cost_of_accommodation)-accommodation_total_deviation_calculation} and {int(cost_of_accommodation)+accommodation_total_deviation_calculation}</p>',
+        f'<p class="big-font">Including {cost_of_accommodation_deviation}% deviation, total cost of accommodation is between : ---> {int(cost_of_accommodation)-accommodation_total_deviation_calculation} and {int(cost_of_accommodation)+accommodation_total_deviation_calculation}</p>',
         unsafe_allow_html=True)
 
 notes_accommodation = st.text_input("Notes for accommodation: ",st.session_state["Accommodation"]["Notes"])
@@ -264,7 +264,7 @@ with food_col1:
 with food_col2:
     cost_of_drinks = st.number_input('Cost of drinks (alc)', st.session_state["Food_drinks"]["Cost_drinks"])
 total_cost_foods_drinks = int(cost_of_food) + int(cost_of_drinks)
-cost_of_food_deviation = st.number_input('Deviation:', st.session_state["Food_drinks"]["deviation"])
+cost_of_food_deviation = st.number_input('Deviation(%):', st.session_state["Food_drinks"]["deviation"])
 
 try:
     foods_total_deviation_calculation =int(total_cost_foods_drinks)  if cost_of_food_deviation ==0 else total_cost_foods_drinks/ float(cost_of_food_deviation)
