@@ -19,8 +19,8 @@ accom_min=0
 accom_max=0
 foods_min =0
 foods_max=0
-PARTYTYPE = "Bachelor"
-NAME = "FILIP"
+PARTYTYPE = ""
+NAME = ""
 
 
 st.set_page_config(page_title=f"Party planner - cost breakdown calculator",layout="wide")
@@ -28,7 +28,47 @@ st.set_page_config(page_title=f"Party planner - cost breakdown calculator",layou
 
 file_upload = st.sidebar.file_uploader("Upload prepared data",type=["astor"])
 
+#Leave popup
+st.markdown("""
+<script>
+window.addEventListener("beforeunload", function (e) {
+    e.preventDefault();
+    e.returnValue = '';
+});
+</script>
+""", unsafe_allow_html=True)
 
+
+@st.dialog("Enter basic details")
+def popup_form():
+    st.write("Please fill in your information:")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        name = st.text_input("Name")
+    with col2:
+        partytype = st.selectbox("Party type",["Bachelors party","Hen party","Birthday","Team building","Event","Other"])
+        if partytype == "Other":
+            custom_value = st.text_input("Enter your own value")
+            final_value = custom_value
+        else:
+            final_value = partytype
+
+
+    st.divider()
+
+    if st.button("Submit"):
+
+        st.session_state["NAME"] = name
+        st.session_state["PARTYTYPE"] = final_value
+
+        st.rerun()
+
+if "NAME" not in st.session_state:
+    popup_form()
+else:
+    NAME = st.session_state["NAME"]
+    PARTYTYPE = st.session_state["PARTYTYPE"]
 
 if file_upload is not None:
     stringio = StringIO(file_upload.getvalue().decode("utf-8"))
@@ -94,8 +134,8 @@ if file_upload is not None:
 if "is_new_activity_open" not in st.session_state:
     st.session_state['is_new_activity_open']=False
 
-random_activities=["Washing my car","Doing pushups","Drinking liquids on first sight","Trying to lick own elbow",
-                   "Petting dogs","Speedrunning blood donations","Watching cartoons","Digging tunnel to China","Cracking joints"]
+random_activities=["Washing my car","Doing pushups","Drinking questionable liquids","Trying to lick own elbow",
+                   "Petting dogs","Battling ancient evil","Watching cartoons","Digging tunnel to China","Cracking joints"]
 
 if "NAME" not in st.session_state:
     st.session_state["NAME"] = NAME
@@ -103,7 +143,10 @@ if "NAME" not in st.session_state:
 if "PARTYTYPE" not in st.session_state:
     st.session_state["PARTYTYPE"] = "Bachelors"
 
-st.title(f"{st.session_state['NAME']}'s {PARTYTYPE} party - Cost breakdown")
+if st.session_state['NAME']=='' and st.session_state['PARTYTYPE']=='':
+    st.title(f"Some event - Cost breakdown")
+else:
+    st.title(f"{st.session_state['NAME']}'s {PARTYTYPE} party - Cost breakdown")
 
 gen_col1, gen_col2 = st.columns(2)
 with gen_col1:
