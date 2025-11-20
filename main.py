@@ -7,12 +7,12 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from PIL import Image
-from fpdf import FPDF
+from fpdf import FPDF, XPos, YPos
 import base64
 from tempfile import NamedTemporaryFile
 #image = Image.open('dominik_cut.png')
 
-VERSION = "1.5"
+VERSION = "1.5.1"
 transport_min=0
 transport_max=0
 accom_min=0
@@ -20,10 +20,10 @@ accom_max=0
 foods_min =0
 foods_max=0
 PARTYTYPE = "Bachelor"
-NAME = "ALEX"
+NAME = "FILIP"
 
 
-st.set_page_config(page_title=f"Party planner - cost breakdown calculator",layout="wide")#, page_icon = st.image(image))
+st.set_page_config(page_title=f"Party planner - cost breakdown calculator",layout="wide")
 
 
 file_upload = st.sidebar.file_uploader("Upload prepared data",type=["astor"])
@@ -181,7 +181,7 @@ else:
 
 
 trans_col1, trans_col2 = st.columns(2)
-if(option == "Train"):
+if option == "Train":
 
     with trans_col1:
         cost_of_transport = st.number_input('Cost of the ticket (two ways)', st.session_state["Transportation"]["cost_of_transport"])
@@ -225,7 +225,7 @@ else:
         </style>
         """, unsafe_allow_html=True)
 
-        st.markdown(f'<p class="big-font">Including {cost_of_transport_deviation}% deviation, total cost of transport is: ---> {transport_total + transport_total/float(cost_of_transport_deviation)}</p>', unsafe_allow_html=True)
+        st.markdown(f'<p class="big-font">Including {cost_of_transport_deviation}% deviation, total cost of transport is: ---> {transport_total + transport_total/float(cost_of_transport_deviation if cost_of_transport_deviation!=0 else 1)}</p>', unsafe_allow_html=True)
 notes_transportation = st.text_input("Notes for transportation: ","None")
 st.subheader('Accommodation')
 acom_col1, acom_col2 = st.columns(2)
@@ -300,19 +300,31 @@ def delete_from_activities(index):
     del st. session_state['activities'][index]
 
 
-
+st.markdown("""
+    <style>
+        .centered {
+            margin-top:9%;
+            font-size: 20px;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 for rec in st.session_state['activities']["list"]:
-
-    col_1, col_2, = st.columns(2)
+    col_1, col_2, col_3, col_4 = st.columns(4)
     with col_1:
-        x = st.number_input(rec[0],rec[1])
-    st.session_state['activities_objs'].append(x)
-    st.session_state['activities']['list'][count]=(rec[0],x)
-    #st.button(f"DELETE - {key.split(' ')[0]}",on_click=delete_from_activities)
-
+        st.markdown(f'<div class="centered">{rec[0]}</div>', unsafe_allow_html=True)
 
     with col_2:
+        x = st.number_input("Cost:",rec[1])
+    with col_3:
+        y = st.text_input("Link", rec[2])
+    st.session_state['activities_objs'].append((x,y))
+    #st.session_state['activities_objs'].append(x)
+    st.session_state['activities']['list'][count]=(rec[0],x,y)
+
+
+
+    with col_4:
         st.text("   ")
         st.text("   ")
         st.button(f"""DELETE -\n {rec[0]}""",on_click=delete_from_activities,args=(count,))
@@ -327,12 +339,17 @@ if (st.session_state['is_new_activity_open']):
         st.session_state["temp new activity"]=random.choice(random_activities)
     act_name = st.text_input(f"New activity name: ",st.session_state["temp new activity"],)
 
+    x = st.number_input("Cost:",0)
+
+    y = st.text_input("Link:",'')
+
+
     def add_activity():
         st.write(act_name)
         if act_name:
             st.write(act_name)
-        st.session_state['activities']["list"].append((act_name,0))
-
+        st.session_state['activities']["list"].append((act_name,x,y))
+        print(f"Adding: {st.session_state['activities']["list"]}")
         st.session_state['activities_objs'].append(act_name)
         st.session_state['is_new_activity_open'] = False
 
@@ -451,75 +468,75 @@ def export_pdf_data():
 
     pdf = FPDF('P', 'mm', 'A4')
     pdf.add_page()
-    pdf.set_font('Arial', 'B', 25)
-    pdf.cell(190, 10, f'{NAME}\'s party cost breakdown.', 0, 1, 'C')
-    pdf.set_font('Arial', 'B', 15)
+    pdf.set_font('Helvetica', 'B', 25)
+    pdf.cell(190, 10, f'{NAME}\'s party cost breakdown.', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.set_font('Helvetica', 'B', 15)
     pdf.ln(5)
-    pdf.cell(40, 10, f'Transport: {option}', 0, 1)
-    pdf.set_font('Arial', '', 12)
+    pdf.cell(40, 10, f'Transport: {option}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.set_font('Helvetica', '', 12)
 
     if "No travel" not in option:
         if option == "Train":
-            pdf.cell(70, 10, f'Cost of ticket (two ways): {cost_of_transport}', 0, 1)
-            pdf.cell(70, 10, f'Cost of transport on site: {cost_of_transport_on_site}', 0, 1)
+            pdf.cell(70, 10, f'Cost of ticket (two ways): {cost_of_transport}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+            pdf.cell(70, 10, f'Cost of transport on site: {cost_of_transport_on_site}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         else:
             if not adv:
-                pdf.cell(70, 10, f'Cost of fuel (two ways): {cost_of_transport_fuel}', 0, 1)
-                pdf.cell(70, 10, f'Cost of transport on site: {cost_of_transport_on_site}', 0, 1)
+                pdf.cell(70, 10, f'Cost of fuel (two ways): {cost_of_transport_fuel}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+                pdf.cell(70, 10, f'Cost of transport on site: {cost_of_transport_on_site}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
             else:
                 try:
-                    pdf.cell(70, 10, f'Liters per 100km: {cost_of_transport_litres_per_100km}', 0, 1)
+                    pdf.cell(70, 10, f'Liters per 100km: {cost_of_transport_litres_per_100km}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
-                    pdf.cell(70, 10, f'Cost of single liter: {cost_of_transport_cost_of_litre}', 0, 1)
-                    pdf.cell(70, 10, f'Distance to drive: {cost_of_transport_length}', 0, 1)
-                    pdf.cell(70, 10, f'Highway fees: {cost_of_transport_highway_fee}', 0, 1)
-                    pdf.cell(70, 10, f'Cost of transport on site: {cost_of_transport_on_site}', 0, 1)
+                    pdf.cell(70, 10, f'Cost of single liter: {cost_of_transport_cost_of_litre}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+                    pdf.cell(70, 10, f'Distance to drive: {cost_of_transport_length}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+                    pdf.cell(70, 10, f'Highway fees: {cost_of_transport_highway_fee}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+                    pdf.cell(70, 10, f'Cost of transport on site: {cost_of_transport_on_site}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
                 except Exception:
                     pass
 
-        pdf.cell(70, 10, f'Total travel cost: {transport_total}', 0, 1)
-        pdf.cell(70, 10, f"Notes: {notes_transportation}",0,1)
+        pdf.cell(70, 10, f'Total travel cost: {transport_total}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.cell(70, 10, f"Notes: {notes_transportation}",0,new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.ln(5)
 
         #accommodation
-        pdf.set_font('Arial', 'B', 15)
+        pdf.set_font('Helvetica', 'B', 15)
 
-        pdf.cell(40, 10, f'accommodation:', 0, 1)
-        pdf.set_font('Arial', '', 12)
+        pdf.cell(40, 10, f'Accommodation:', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.set_font('Helvetica', '', 12)
         if cost_of_accommodation_deviation == 0:
-            pdf.cell(70, 10, f'Total cost of accommodation: {cost_of_accommodation}', 0, 1)
+            pdf.cell(70, 10, f'Total cost of accommodation: {cost_of_accommodation}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         else:
-            pdf.cell(70, 10, f'Total cost of accommodation: {cost_of_accommodation*(1-cost_of_accommodation_deviation)}-{cost_of_accommodation*(1+cost_of_accommodation_deviation)}', 0, 1)
-        pdf.cell(70, 10, f'accommodation cost deviation: {cost_of_accommodation_deviation}%', 0, 1)
-        pdf.cell(40, 10, f'Notes: {notes_accommodation}', 0, 1)
+            pdf.cell(70, 10, f'Total cost of accommodation: {cost_of_accommodation*(1-cost_of_accommodation_deviation)}-{cost_of_accommodation*(1+cost_of_accommodation_deviation)}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.cell(70, 10, f'accommodation cost deviation: {cost_of_accommodation_deviation}%', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.cell(40, 10, f'Notes: {notes_accommodation}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.ln(5)
-        pdf.set_font('Arial', 'B', 15)
-        pdf.cell(40, 10, f'Foods & drinks:', 0, 1, 'C')
-        pdf.set_font('Arial', '', 12)
-        pdf.cell(70, 10, f"Cost of food: {cost_of_food}", 0, 1)
-        pdf.cell(70, 10, f"Cost of drinks: {cost_of_drinks}", 0, 1)
+        pdf.set_font('Helvetica', 'B', 15)
+        pdf.cell(40, 10, f'Foods & drinks:', 0,new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.set_font('Helvetica', '', 12)
+        pdf.cell(70, 10, f"Cost of food: {cost_of_food}", 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.cell(70, 10, f"Cost of drinks: {cost_of_drinks}", 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         if cost_of_food_deviation==0:
-            pdf.cell(70, 10, f"Total cost of f&d: {(cost_of_drinks+cost_of_food)*(1-cost_of_food_deviation)} - {(cost_of_drinks+cost_of_food)*(1-cost_of_food_deviation)}", 0, 1)
+            pdf.cell(70, 10, f"Total cost of f&d: {(cost_of_drinks+cost_of_food)*(1-cost_of_food_deviation)} - {(cost_of_drinks+cost_of_food)*(1-cost_of_food_deviation)}", 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         else:
-            pdf.cell(70, 10, f"Total cost of f&d: {(cost_of_drinks+cost_of_food)}", 0, 1)
-        pdf.cell(70, 10, f"Deviation of cost of food and drinks: {cost_of_food_deviation}%", 0, 1)
+            pdf.cell(70, 10, f"Total cost of f&d: {(cost_of_drinks+cost_of_food)}", 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.cell(70, 10, f"Deviation of cost of food and drinks: {cost_of_food_deviation}%", 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
         pdf.ln(5)
-        pdf.set_font('Arial', 'B', 15)
-        pdf.cell(40, 10, f'Activities:', 0, 1)
-        pdf.set_font('Arial', '', 12)
+        pdf.set_font('Helvetica', 'B', 15)
+        pdf.cell(40, 10, f'Activities:', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.set_font('Helvetica', '', 12)
         #for act, actobj in zip(st.session_state["activities"],st.session_state["activities_objs"]):
         for act in st.session_state["activities"]["list"]:
-            pdf.cell(70, 10, f"{act[0]}: {act[1]}", 0, 1)
+            pdf.cell(70, 10, f"{act[0]}: {act[1]}", 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
-        pdf.cell(70, 10, f"Notes: {notes_activities}", 0, 1)
+        pdf.cell(70, 10, f"Notes: {notes_activities}", 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.ln(10)
-        pdf.set_font('Arial', 'B', 15)
-        pdf.cell(40, 10, f'Total cost (including deviations and general additional cost',0,1)
+        pdf.set_font('Helvetica', 'B', 15)
+        pdf.cell(40, 10, f'Total cost (including deviations and general additional cost',0,new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.cell(40,10,f'of the main person - {addition_for_bach}%) is:'
-                         f'{round(min_costs,2)} - {round(max_costs,2)}', 0, 1)
-        pdf.set_font('Arial', '', 12)
-        pdf.cell(70, 10, f"General notes: {notes_general}", 0, 1)
+                         f'{round(min_costs,2)} - {round(max_costs,2)}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.set_font('Helvetica', '', 12)
+        pdf.cell(70, 10, f"General notes: {notes_general}", 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
     #html = create_download_link(pdf.output(dest="S").encode("latin-1"), "test")
         #st.balloons()
@@ -596,7 +613,15 @@ def export_json_data():
 
 
 
-download_button = st.sidebar.download_button(f"Download PDF summary", data = export_pdf_data().output(dest="S").encode("latin-1"), file_name =f"{NAME}_{PARTYTYPE}_Summary.pdf")
+# download_button = st.sidebar.download_button(f"Download PDF summary", data = export_pdf_data().output(dest="S").encode("latin-1"), file_name =f"{NAME}_{PARTYTYPE}_Summary.pdf")
+
+download_button = st.sidebar.download_button(
+    "Download PDF summary",
+    #data = bytes(export_pdf_data().output(dest="S")),
+    data = bytes(export_pdf_data().output()),
+    file_name = f"{NAME}_{PARTYTYPE}_Summary.pdf"
+)
+
 download_button_json = st.sidebar.download_button(f"Download JSON data (for upload)", data = export_json_data().encode("utf-8"), file_name =f"{NAME}_{PARTYTYPE}_data.astor")
 
 #st.button("Generate summary (experimental)",on_click=export_data)
@@ -642,7 +667,7 @@ st.markdown("""
 
 
 st.markdown(
-     f'<p class="footerstyle"><br>Made by: Astor Beon - v. 1.3.1 - maciej.konstanty.lachowicz@gmail.com</p>',
+     f'<p class="footerstyle"><br>Made by: Astor Beon - v. {VERSION} - maciej.konstanty.lachowicz@gmail.com</p>',
      unsafe_allow_html=True)
 
 
