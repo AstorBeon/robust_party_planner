@@ -10,6 +10,9 @@ from PIL import Image
 from fpdf import FPDF, XPos, YPos
 import base64
 from tempfile import NamedTemporaryFile
+
+from Supports import create_detailed_map, extract_coordinates_and_address, image_to_pdf, get_static_map
+
 #image = Image.open('dominik_cut.png')
 
 VERSION = "1.5.1"
@@ -290,6 +293,18 @@ st.markdown("""
 
 accommodation_link = st.text_input('Link:',
                                         st.session_state["Accommodation"]["link"])
+acom_map=None
+if accommodation_link:
+    lat,lon,address = extract_coordinates_and_address(accommodation_link)
+    if lat is not None:
+        st.write("Name: {}".format(address))
+        get_static_map(lat, lon)
+        acom_map = st.pydeck_chart(create_detailed_map(lat,lon))
+
+        st.success(f"Coordinates extracted!")
+    else:
+        st.error("Failed to extract coordinates :(")
+
 
 try:
     accommodation_total_deviation_calculation =int(cost_of_accommodation) / float(cost_of_accommodation_deviation)
@@ -522,7 +537,7 @@ def export_pdf_data():
     pdf = FPDF('P', 'mm', 'A4')
     pdf.add_page()
     pdf.set_font('Helvetica', 'B', 25)
-    pdf.cell(190, 10, f'{NAME}\'s party cost breakdown.', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.cell(190, 10, f'{NAME}\'s party cost breakdown (per person)', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     pdf.set_font('Helvetica', 'B', 15)
     pdf.ln(5)
     pdf.cell(40, 10, f'Transport: {option}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
@@ -556,11 +571,21 @@ def export_pdf_data():
 
         pdf.cell(40, 10, f'Accommodation:', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.set_font('Helvetica', '', 12)
+        if acom_map:
+            pdf.cell(70, 10, f'{address}', 0, new_x=XPos.LMARGIN,
+                 new_y=YPos.NEXT)
+
+            #get_static_map(lat,lon)
+            pdf.image("map.png", x=10, y=100, w=180)
+            pass
+            pdf.ln(130)
+
         if cost_of_accommodation_deviation == 0:
             pdf.cell(70, 10, f'Total cost of accommodation: {cost_of_accommodation}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         else:
             pdf.cell(70, 10, f'Total cost of accommodation: {cost_of_accommodation*(1-cost_of_accommodation_deviation)}-{cost_of_accommodation*(1+cost_of_accommodation_deviation)}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-        pdf.cell(70, 10, f'accommodation cost deviation: {cost_of_accommodation_deviation}%', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+        pdf.cell(70, 10, f'Accommodation cost deviation: {cost_of_accommodation_deviation}%', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.cell(40, 10, f'Notes: {notes_accommodation}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.ln(5)
         pdf.set_font('Helvetica', 'B', 15)
