@@ -275,7 +275,7 @@ else:
         st.markdown(f'<p class="big-font">Including {cost_of_transport_deviation}% deviation, total cost of transport is: ---> {transport_total + transport_total/float(cost_of_transport_deviation if cost_of_transport_deviation!=0 else 1)}</p>', unsafe_allow_html=True)
 notes_transportation = st.text_input("Notes for transportation: ","None")
 st.subheader('Accommodation')
-acom_col1, acom_col2 = st.columns(3)
+acom_col1, acom_col2 = st.columns(2)
 with acom_col1:
     cost_of_accommodation = st.number_input('Cost of accommodation(total):', st.session_state["Accommodation"]["accommodation_cost"])
 with acom_col2:
