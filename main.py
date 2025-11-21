@@ -116,11 +116,13 @@ if file_upload is not None:
         pass
 
     st.session_state["Accommodation"]["accommodation_cost"] = upload_json["Accommodation"]["accommodation_cost"]
+    st.session_state["Accommodation"]["link"] = upload_json["Accommodation"]["link"]
     st.session_state["Accommodation"]["deviation"] = upload_json["Accommodation"]["deviation"]
     st.session_state["Accommodation"]["Notes"] = upload_json["Accommodation"]["Notes"]
 
     st.session_state["Food_drinks"]["Cost_food"] = upload_json["Food_drinks"]["Cost_food"]
     st.session_state["Food_drinks"]["Cost_drinks"] = upload_json["Food_drinks"]["Cost_drinks"]
+    st.session_state["Food_drinks"]["Days"] = upload_json["Food_drinks"]["Days"]
     st.session_state["Food_drinks"]["deviation"] = upload_json["Food_drinks"]["deviation"]
     st.session_state["Food_drinks"]["Notes"] = upload_json["Food_drinks"]["Notes"]
 
@@ -189,6 +191,7 @@ if "Transportation" not in st.session_state:
 if "Accommodation" not in st.session_state:
     st.session_state["Accommodation"]={}
     st.session_state["Accommodation"]["accommodation_cost"] = 0
+    st.session_state["Accommodation"]["link"] = ''
     st.session_state["Accommodation"]["deviation"] = 0
     st.session_state["Accommodation"]["Notes"] = "None"
 #todo add initial values for rest of categories + load them above
@@ -197,6 +200,7 @@ if "Food_drinks" not in st.session_state:
     st.session_state["Food_drinks"] = {}
     st.session_state["Food_drinks"]["Cost_food"] = 0
     st.session_state["Food_drinks"]["Cost_drinks"] = 0
+    st.session_state["Food_drinks"]["Days"] = 1
     st.session_state["Food_drinks"]["deviation"] = 0
     st.session_state["Food_drinks"]["Notes"] = "None"
 
@@ -271,7 +275,7 @@ else:
         st.markdown(f'<p class="big-font">Including {cost_of_transport_deviation}% deviation, total cost of transport is: ---> {transport_total + transport_total/float(cost_of_transport_deviation if cost_of_transport_deviation!=0 else 1)}</p>', unsafe_allow_html=True)
 notes_transportation = st.text_input("Notes for transportation: ","None")
 st.subheader('Accommodation')
-acom_col1, acom_col2 = st.columns(2)
+acom_col1, acom_col2 = st.columns(3)
 with acom_col1:
     cost_of_accommodation = st.number_input('Cost of accommodation(total):', st.session_state["Accommodation"]["accommodation_cost"])
 with acom_col2:
@@ -283,6 +287,10 @@ st.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
+
+accommodation_link = st.text_input('Link:',
+                                        st.session_state["Accommodation"]["link"])
+
 try:
     accommodation_total_deviation_calculation =int(cost_of_accommodation) / float(cost_of_accommodation_deviation)
     accom_min=int(cost_of_accommodation)-accommodation_total_deviation_calculation
@@ -301,16 +309,18 @@ else:
 
 notes_accommodation = st.text_input("Notes for accommodation: ",st.session_state["Accommodation"]["Notes"])
 st.subheader('Food & Drinks')
-food_col1, food_col2 = st.columns(2)
+food_col1, food_col2, food_col_3 = st.columns(3)
 with food_col1:
     cost_of_food = st.number_input('Cost of food', st.session_state["Food_drinks"]["Cost_food"])
 with food_col2:
     cost_of_drinks = st.number_input('Cost of drinks (alc)', st.session_state["Food_drinks"]["Cost_drinks"])
-total_cost_foods_drinks = int(cost_of_food) + int(cost_of_drinks)
+with food_col_3:
+    amount_of_days = st.number_input('Amount of days', st.session_state["Food_drinks"]["Days"])
+total_cost_foods_drinks = (int(cost_of_food) + int(cost_of_drinks))*amount_of_days
 cost_of_food_deviation = st.number_input('Deviation(%):', st.session_state["Food_drinks"]["deviation"])
 
 try:
-    foods_total_deviation_calculation =int(total_cost_foods_drinks)  if cost_of_food_deviation ==0 else total_cost_foods_drinks/ float(cost_of_food_deviation)
+    foods_total_deviation_calculation =0  if cost_of_food_deviation ==0 else total_cost_foods_drinks/ float(cost_of_food_deviation)
     foods_min=total_cost_foods_drinks-foods_total_deviation_calculation
     foods_max=total_cost_foods_drinks+foods_total_deviation_calculation
 except Exception:
