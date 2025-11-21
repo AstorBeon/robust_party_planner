@@ -587,7 +587,7 @@ def export_pdf_data():
 
         pdf.cell(70, 10, f'Accommodation cost deviation: {cost_of_accommodation_deviation}%', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.cell(40, 10, f'Notes: {notes_accommodation}', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-        pdf.ln(5)
+        pdf.add_page()
         pdf.set_font('Helvetica', 'B', 15)
         pdf.cell(40, 10, f'Foods & drinks:', 0,new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         pdf.set_font('Helvetica', '', 12)
