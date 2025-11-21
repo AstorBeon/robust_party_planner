@@ -392,7 +392,7 @@ if (st.session_state['is_new_activity_open']):
         if act_name:
             st.write(act_name)
         st.session_state['activities']["list"].append((act_name,x,y))
-        print(f"Adding: {st.session_state['activities']["list"]}")
+        #print(f"Adding: {st.session_state['activities']['list']}")
         st.session_state['activities_objs'].append(act_name)
         st.session_state['is_new_activity_open'] = False
 
@@ -712,6 +712,4 @@ st.markdown("""
 st.markdown(
      f'<p class="footerstyle"><br>Made by: Astor Beon - v. {VERSION} - maciej.konstanty.lachowicz@gmail.com</p>',
      unsafe_allow_html=True)
-
-
 
