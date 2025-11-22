@@ -1,5 +1,7 @@
+import datetime
 import json
 import random
+from datetime import date
 from io import StringIO
 
 import matplotlib.pyplot as plt
@@ -87,6 +89,8 @@ if file_upload is not None:
     st.session_state["NAME"] = upload_json["General"][0]
     st.session_state["PARTYTYPE"] = upload_json["General"][1]
     st.session_state["limit"] = upload_json["General"][2]
+    st.session_state["start_date"] = upload_json["Start"]
+    st.session_state["end_date"] = upload_json["End"]
     st.session_state["Transportation"]["option"]=upload_json["Transport"]["transport_type"]
     try:
         st.session_state["Transportation"]["is_adv"]=upload_json["Transport"]["is_adv"]
@@ -171,6 +175,17 @@ if "limit" not in st.session_state:
     st.session_state["limit"] = 100
 
 limit= st.number_input('Amount to be spent (initial assumption)', st.session_state["limit"])
+
+datecol_1,datecol_2, datecol_3 = st.columns(3)
+if "start_date" not in st.session_state:
+    st.session_state["start_date"] = datetime.datetime.today()
+    st.session_state["end_date"] = datetime.datetime.today()
+with datecol_1:
+    start_date = st.date_input("Start date:",st.session_state ["start_date"])
+with datecol_2:
+    end_date = st.date_input("End date:",st.session_state ["end_date"])
+
+
 st.subheader('Transportation')
 
 #todo add loading from session state
@@ -378,21 +393,24 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 for rec in st.session_state['activities']["list"]:
-    col_1, col_2, col_3, col_4 = st.columns(4)
+    col_1, col_2, col_3, col_4, col_5 = st.columns(5)
     with col_1:
         st.markdown(f'<div class="centered">{rec[0]}</div>', unsafe_allow_html=True)
 
     with col_2:
         x = st.number_input("Cost:",rec[1])
     with col_3:
-        y = st.text_input("Link", rec[2])
-    st.session_state['activities_objs'].append((x,y))
-    #st.session_state['activities_objs'].append(x)
-    st.session_state['activities']['list'][count]=(rec[0],x,y)
-
-
-
+        z = st.date_input("Date:",rec[3])
+        z1 = st.time_input("Time:",rec[4])
     with col_4:
+        y = st.text_input("Link", rec[2])
+    st.session_state['activities_objs'].append((x,y,z,z1))
+    #st.session_state['activities_objs'].append(x)
+    st.session_state['activities']['list'][count]=(rec[0],x,y,z,z1)
+
+
+
+    with col_5:
         st.text("   ")
         st.text("   ")
         st.button(f"""DELETE -\n {rec[0]}""",on_click=delete_from_activities,args=(count,))
@@ -409,14 +427,16 @@ if (st.session_state['is_new_activity_open']):
 
     x = st.number_input("Cost:",0)
 
-    y = st.text_input("Link:",'')
+    z = st.date_input("Date:",key="actdate")
+    act_time = st.time_input("Time:",key="acttime")
+    y = st.text_input("Link:",'',key="actlink")
 
 
     def add_activity():
         st.write(act_name)
         if act_name:
             st.write(act_name)
-        st.session_state['activities']["list"].append((act_name,x,y))
+        st.session_state['activities']["list"].append((act_name,x,y,z,act_time))
         #print(f"Adding: {st.session_state['activities']['list']}")
         st.session_state['activities_objs'].append(act_name)
         st.session_state['is_new_activity_open'] = False
@@ -625,6 +645,8 @@ def export_pdf_data():
 def export_json_data():
     # st.balloons()
     ret_dict = {"General":[NAME,PARTYTYPE,limit],
+                "Start":start_date,
+                "End":end_date,
                 "Transport":{
                     "transport_type":option,
 
