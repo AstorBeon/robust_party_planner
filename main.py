@@ -82,15 +82,15 @@ if file_upload is not None:
     upload_json = json.loads(string_data)
 
     #additional check for version
-    if VERSION != upload_json["VERSION"]:
-        st.warning(f"File you're loading was generated using version {upload_json['VERSION']} while current version is {VERSION}."
+    if VERSION != upload_json["Version"]:
+        st.warning(f"File you're loading was generated using version {upload_json['Version']} while current version is {VERSION}."
                    f"This can cause errors while loading data")
 
     st.session_state["NAME"] = upload_json["General"][0]
     st.session_state["PARTYTYPE"] = upload_json["General"][1]
     st.session_state["limit"] = upload_json["General"][2]
-    st.session_state["start_date"] = upload_json["Start"]
-    st.session_state["end_date"] = upload_json["End"]
+    st.session_state["start_date"] = datetime.datetime.strptime(upload_json["Start"],"%Y-%m-%d")
+    st.session_state["end_date"] = datetime.datetime.strptime(upload_json["End"],"%Y-%m-%d")
     st.session_state["Transportation"]["option"]=upload_json["Transport"]["transport_type"]
     try:
         st.session_state["Transportation"]["is_adv"]=upload_json["Transport"]["is_adv"]
@@ -136,9 +136,15 @@ if file_upload is not None:
 
     st.session_state["activities"]["list"] = upload_json["Activities"]["list"]
     st.session_state["activities"]["Notes"] = upload_json["Activities"]["Notes"]
+
+    st.session_state["Additionals"]=upload_json["Additionals"]
+
     st.session_state["Other"]["general_notes"] = upload_json["Other"]["general_notes"]
     pass
 
+
+    st.success("Data uploaded!")
+    st.balloons()
 
 if "is_new_activity_open" not in st.session_state:
     st.session_state['is_new_activity_open']=False
@@ -368,7 +374,6 @@ else:
 notes_food_drinks = st.text_input("Notes for foods & drinks: ",st.session_state["Food_drinks"]["Notes"])
 
 
-#todo activities
 st.subheader("Activities")
 
 def generate_knowledge_summary():
@@ -449,6 +454,56 @@ notes_activities = st.text_input("Notes for activities: ","None")
 initial=False
 
 activities_cost = sum([int(x[1]) for x in st.session_state['activities']["list"]])
+
+
+st.subheader('Addittional costs:')
+if "Additionals" not in st.session_state:
+    st.session_state["Additionals"]=[]
+
+def delete_cost(costname, costvalue):
+    for i in range(len(st.session_state["Additionals"])):
+        if st.session_state["Additionals"][i]["name"] == costname and st.session_state["Additionals"][i]["cost"] == costvalue:
+            del st.session_state["Additionals"][i]
+            break
+
+tmp=[]
+for additional in st.session_state["Additionals"]:
+    acol1,acol2,acol3 = st.columns(3)
+    with acol1:
+       costtitle =  st.text_input("Title:",additional["name"],key=f"costtitle{len(tmp)}")
+
+    with acol2:
+       costvalue =  st.number_input("Cost:",additional["cost"],key=f"cost {additional['name']}")
+
+    with acol3:
+        st.text("   ")
+        st.text("   ")
+        st.button(f"Delete {costtitle}",key=f"Delete {costtitle}", on_click=delete_cost,args=(costtitle,costvalue))
+    tmp.append({"name":costtitle,"cost":costvalue})
+
+# print("New tmp")
+# print(tmp)
+st.session_state["Additionals"] = tmp
+
+def add_cost():
+
+    if len(st.session_state["Additionals"])>0 and st.session_state["Additionals"][-1]["name"]=="":
+
+        st.toast("You cant add new cost without completing the previous one.")
+    else:
+
+        st.session_state["Additionals"].append({'name':'',"cost":0})
+
+    # acol1,acol2,acol3 = st.columns(3)
+    # with acol1:
+    #     st.text_input("Title:",additional["name"])
+    # with acol2:
+    #     st.number_input("Cost:",additional["cost"])
+    # with acol3:
+    #     st.button("Delete",on_click=delete_cost,args=(additional["name"],additional["cost"]))
+
+st.button("Add cost",on_click=add_cost)
+
 
 total_cost = transport_total + activities_cost+int(cost_of_accommodation) + total_cost_foods_drinks
 
@@ -625,9 +680,17 @@ def export_pdf_data():
         pdf.set_font('Helvetica', '', 12)
         #for act, actobj in zip(st.session_state["activities"],st.session_state["activities_objs"]):
         for act in st.session_state["activities"]["list"]:
-            pdf.cell(70, 10, f"{act[0]}: {act[1]}", 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+            pdf.cell(70, 10, f"{act[0]}: {act[1]}. Date: {act[2]} {act[3]}", 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
         pdf.cell(70, 10, f"Notes: {notes_activities}", 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.ln(10)
+        pdf.set_font('Helvetica', 'B', 15)
+        pdf.cell(40, 10, f'Additional costs:', 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.set_font('Helvetica', '', 12)
+        # for act, actobj in zip(st.session_state["activities"],st.session_state["activities_objs"]):
+        for adt in st.session_state["Additionals"]:
+            pdf.cell(70, 10, f"{adt['name']}: {adt['cost']}", 0, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
         pdf.ln(10)
         pdf.set_font('Helvetica', 'B', 15)
         pdf.cell(40, 10, f'Total cost (including deviations and general additional cost',0,new_x=XPos.LMARGIN, new_y=YPos.NEXT)
@@ -645,13 +708,13 @@ def export_pdf_data():
 def export_json_data():
     # st.balloons()
     ret_dict = {"General":[NAME,PARTYTYPE,limit],
-                "Start":start_date,
-                "End":end_date,
+                "Start":start_date.strftime('%Y-%m-%d'),
+                "End":end_date.strftime('%Y-%m-%d'),
                 "Transport":{
                     "transport_type":option,
 
                 },
-                "Version":"1.4"
+                "Version":VERSION
                 }
 
 
@@ -689,22 +752,29 @@ def export_json_data():
         ret_dict["Accommodation"]["deviation"] = cost_of_accommodation_deviation
 
         ret_dict["Accommodation"]["accommodation_cost"] = cost_of_accommodation_deviation
+        ret_dict["Accommodation"]["link"] = accommodation_link
         ret_dict["Accommodation"]["Notes"]=notes_accommodation
-
-        #todo finish this function
 
         ret_dict["Food_drinks"] = {}
         ret_dict["Food_drinks"]["Cost_food"] = cost_of_food
         ret_dict["Food_drinks"]["Cost_drinks"] = cost_of_food
         ret_dict["Food_drinks"]["deviation"] = cost_of_food_deviation
+        ret_dict["Food_drinks"]["Days"] = amount_of_days
         ret_dict["Food_drinks"]["Notes"] = notes_food_drinks
 
         ret_dict["Activities"] = {}
         ret_dict["Activities"]["list"] = []
         for act in st.session_state["activities"]["list"]:
-            ret_dict["Activities"]["list"].append(act)
+            subact = [*act]
+            print(subact)
+            subact[3] = subact[3].strftime('%Y-%m-%d')
+            subact[4] = f"{subact[4].hour}:{subact[4].minute}"
+            ret_dict["Activities"]["list"].append(subact)
 
         ret_dict["Activities"]["Notes"] = notes_activities
+
+        ret_dict["Additionals"] = st.session_state["Additionals"]
+
         ret_dict["Other"] = {}
         ret_dict["Other"]["addition_for_main_person"] = addition_for_bach
         ret_dict["Other"]["general_notes"] = notes_general
